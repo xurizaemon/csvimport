@@ -1,0 +1,133 @@
+<?php
+
+/**
+ * Demonstration module.
+ *
+ * - Provide form for upload of a CSV file.
+ * - On submission, trigger a batch task which iterates through each row in the file.
+ */
+
+/**
+ * Implement hook_menu()
+ */
+function csvimport_menu() {
+  $items['admin/content/csv_import'] = array(
+    'title' => 'Import CSV',
+    'description' => 'Import content from a <abbr title="Comma Separated Values">CSV</abbr> or <abbr title="Tab Separated Values">TSV</abbr> file.',
+    'access callback' => 'user_access',
+    'access arguments' => array('access site administration'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('csvimport_form'),
+//  'file' => 'csvimport.admin.inc',
+  );
+  return $items ;
+}
+
+/**
+ * Build a form to upload CSV to.
+ */
+function csvimport_form() {
+  $form['#attributes'] = array(
+    'enctype' => 'multipart/form-data'
+  );
+  $form['csvfile'] = array( 
+    '#title' => t('CSV File'),
+    '#type'  => 'file',
+    '#description' => ($max_size = parse_size(ini_get('upload_max_filesize'))) ? t('Due to server restrictions, the <strong>maximum upload file size is !max_size</strong>. Files that exceed this size will be disregarded.', array('!max_size' => format_size($max_size))) : '',    
+  ) ;
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Commence Import'),
+  ) ;
+  $form['#validate'] = array(
+    'csvimport_validate_fileupload',
+    'csvimport_form_validate',
+  ) ;
+  return $form ;
+}
+
+/**
+ * Validate the file upload. It must be a CSV, and we must
+ * successfully save it to our import directory.
+ */
+function csvimport_validate_fileupload(&$form, &$form_state) {
+  $validators = array(
+    'file_validate_extensions' => array( 'csv' ),
+  ) ;
+  if ( $file = file_save_upload('csvfile', $validators, file_directory_path()) ) {
+    // The file was saved using file_save_upload() and was added to
+    // the files table as a temporary file. We'll make a copy and let
+    // the garbage collector delete the original upload.
+    $directory = file_create_path(variable_get('csvimport','csvimport')) ;
+    if ( file_check_directory($directory, FILE_CREATE_DIRECTORY) ) {
+      $destination = $directory .'/' . $file->filename;
+      if (file_copy($file, $destination, FILE_EXISTS_REPLACE)) {
+        $form_state['values']['csvupload'] = $destination;
+      }
+      else {
+        form_set_error('csvimport', t('Unable to copy upload file to !dest', array('!dest' => $destination)));
+      }      
+    }
+  }
+}
+
+/**
+ * Validate the upload. Ensure that the CSV looks something like we
+ * expect it to.
+ */
+function csvimport_form_validate(&$form, &$form_state) {
+  if ( isset( $form_state['values']['csvupload'] ) ) {
+    if ( $handle = fopen($form_state['values']['csvupload'], 'r') ) {
+      $line_count = 1 ;
+      $first = TRUE ;
+      if ( $line = fgetcsv($handle, 4096) ) {
+        // Validate the first line of the CSV here. The example CSV
+        // happens to have the first three cells as below.
+        if ( $line[0] != 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' ) {
+          form_set_error('csvfile', t('Sorry, this file does not match the expected format.')) ;
+        }
+      }
+      fclose($handle);
+    }
+    else {
+      form_set_error('csvfile', t('Unable to read uploaded file !filepath', array('!filepath' => $form_state['values']['csvupload'])));
+    }
+  }
+}
+
+/**
+ * Handle form submission. Read the CSV into a set of batch operations
+ * and fire them off.
+ */
+function csvimport_form_submit(&$form, &$form_state) {
+  $batch = array(
+    'title' => t('Importing CSV ...'),
+    'operations' => array(),
+    'init_message' => t('Commencing'),
+    'progress_message' => t('Processed @current out of @total.'),
+    'error_message' => t('An error occurred during processing'),
+    'finished' => 'csvimport_import_finished',
+  ) ;
+  if ( isset( $form_state['values']['csvupload'] ) ) {
+    if ( $handle = fopen($form_state['values']['csvupload'], 'r') ) {
+      $line_count = 1 ;
+      $first = TRUE ;
+      $line = fgetcsv($handle, 4096);
+      while ( $line = fgetcsv($handle, 4096) ) {
+        $batch['operations'][] = array('_csvimport_import_line', array(array_map('base64_encode', $line)));        
+      }
+      fclose($handle);
+    } // we caught this in _validate()
+  } // we caught this in _validate()
+  batch_set($batch);
+}
+
+/**
+ * Process a single line. The demonstration CSV happens to have
+ * something interesting in the third column, hence $line[2]
+ */
+function _csvimport_import_line($line, &$context) {
+  $line = $cleaned_line = array_map('base64_decode', $line);
+  usleep(25000);
+  $context['message'] = t('Importing !title', array('!title' => $line[2]));
+}
