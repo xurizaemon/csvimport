@@ -81,11 +81,13 @@ function csvimport_form_validate(&$form, &$form_state) {
       $line_count = 1 ;
       $first = TRUE ;
       if ( $line = fgetcsv($handle, 4096) ) {
-        // Validate the first line of the CSV here. The example CSV
-        // happens to have the first three cells as below.
-        if ( $line[0] != 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' ) {
-          form_set_error('csvfile', t('Sorry, this file does not match the expected format.')) ;
-        }
+        /**
+         * Validate the first line of the CSV here. The example CSV
+         * happens to have the first three cells as below.
+         */
+        // if ( $line[0] != 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' ) {
+        //   form_set_error('csvfile', t('Sorry, this file does not match the expected format.')) ;
+        // }
       }
       fclose($handle);
     }
@@ -128,6 +130,5 @@ function csvimport_form_submit(&$form, &$form_state) {
  */
 function _csvimport_import_line($line, &$context) {
   $line = $cleaned_line = array_map('base64_decode', $line);
-  usleep(25000);
   $context['message'] = t('Importing !title', array('!title' => $line[2]));
 }
