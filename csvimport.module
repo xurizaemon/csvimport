@@ -138,7 +138,6 @@ function csvimport_form_submit(&$form, &$form_state) {
  * Handle batch completion.
  */
 function csvimport_import_finished($success, $results, $operations) {
-  dpm( func_get_args() ) ;
   if ( !empty($results['failed_rows']) ) {
     $dir  = file_directory_path() . '/csvimport/' ;
     if ( file_check_directory( $dir, FILE_CREATE_DIRECTORY ) ) {
