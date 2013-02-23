@@ -14,8 +14,8 @@ function csvimport_menu() {
   $items['admin/content/csv_import'] = array(
     'title' => 'Import CSV',
     'description' => 'Import content from a <abbr title="Comma Separated Values">CSV</abbr> or <abbr title="Tab Separated Values">TSV</abbr> file.',
-    'access callback' => 'user_access',
-    'access arguments' => array('access site administration'),
+   // 'access callback' => 'user_access',
+    'access arguments' => array('administer site configuration'),
     'page callback' => 'drupal_get_form',
     'page arguments' => array('csvimport_form'),
 //  'file' => 'csvimport.admin.inc',
@@ -52,15 +52,16 @@ function csvimport_form() {
  */
 function csvimport_validate_fileupload(&$form, &$form_state) {
   $validators = array(
-    'file_validate_extensions' => array( 'csv' ),
+    'file_validate_extensions' => array( 'csv CSV' ),
   ) ;
-  if ( $file = file_save_upload('csvfile', $validators, file_directory_path()) ) {
+  if ( $file = file_save_upload('csvfile', $validators, 'temporary://') ) {
     // The file was saved using file_save_upload() and was added to
     // the files table as a temporary file. We'll make a copy and let
     // the garbage collector delete the original upload.
-    $directory = file_create_path(variable_get('csvimport','csvimport')) ;
-    if ( file_check_directory($directory, FILE_CREATE_DIRECTORY) ) {
-      $destination = $directory .'/' . $file->filename;
+    $csv_dir = 'temporary://csvfile';
+    $directory_exists = file_prepare_directory($csv_dir, FILE_CREATE_DIRECTORY);
+    if ($directory_exists) {
+      $destination = $csv_dir .'/' . $file->filename;
       if (file_copy($file, $destination, FILE_EXISTS_REPLACE)) {
         $form_state['values']['csvupload'] = $destination;
       }
@@ -139,12 +140,12 @@ function csvimport_form_submit(&$form, &$form_state) {
  */
 function csvimport_import_finished($success, $results, $operations) {
   if ( !empty($results['failed_rows']) ) {
-    $dir  = file_directory_path() . '/csvimport/' ;
-    if ( file_check_directory( $dir, FILE_CREATE_DIRECTORY ) ) {
+    $dir = 'public://csvimport' ;
+    if (file_prepare_directory( $dir, FILE_CREATE_DIRECTORY ) ) {
       $csv_filename = 'failed_rows-'. basename($results['uploaded_filename']); // we validated extension on upload
       $csv_filepath = $dir .'/'. $csv_filename;
       $targs = array(
-        '!csv_url' => l(check_plain($csv_filename), $csv_filepath),
+        '!csv_url' => l(check_plain($csv_filename), file_create_url($csv_filepath)),
         '%csv_filename' => $csv_filename,
         '%csv_filepath' => $csv_filepath,
       ) ;
