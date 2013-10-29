@@ -30,10 +30,10 @@ function csvimport_form() {
   $form['#attributes'] = array(
     'enctype' => 'multipart/form-data'
   );
-  $form['csvfile'] = array( 
+  $form['csvfile'] = array(
     '#title' => t('CSV File'),
     '#type'  => 'file',
-    '#description' => ($max_size = parse_size(ini_get('upload_max_filesize'))) ? t('Due to server restrictions, the <strong>maximum upload file size is !max_size</strong>. Files that exceed this size will be disregarded.', array('!max_size' => format_size($max_size))) : '',    
+    '#description' => ($max_size = parse_size(ini_get('upload_max_filesize'))) ? t('Due to server restrictions, the <strong>maximum upload file size is !max_size</strong>. Files that exceed this size will be disregarded.', array('!max_size' => format_size($max_size))) : '',
   ) ;
   $form['submit'] = array(
     '#type' => 'submit',
@@ -58,7 +58,7 @@ function csvimport_validate_fileupload(&$form, &$form_state) {
     // The file was saved using file_save_upload() and was added to
     // the files table as a temporary file. We'll make a copy and let
     // the garbage collector delete the original upload.
-    $directory = file_create_path(variable_get('csvimport','csvimport')) ;
+    $directory = file_create_path(variable_get('csvimport', 'csvimport')) ;
     if ( file_check_directory($directory, FILE_CREATE_DIRECTORY) ) {
       $destination = $directory .'/' . $file->filename;
       if (file_copy($file, $destination, FILE_EXISTS_REPLACE)) {
@@ -66,7 +66,7 @@ function csvimport_validate_fileupload(&$form, &$form_state) {
       }
       else {
         form_set_error('csvimport', t('Unable to copy upload file to !dest', array('!dest' => $destination)));
-      }      
+      }
     }
   }
 }
@@ -82,13 +82,13 @@ function csvimport_form_validate(&$form, &$form_state) {
       $first = TRUE ;
       if ( $line = fgetcsv($handle, 4096) ) {
         /**
-         * Validate the uploaded CSV here. 
+         * Validate the uploaded CSV here.
          *
          * The example CSV happens to have cell A1 ($line[0]) as
          * below; we validate it only.
          *
          * You'll probably want to check several headers, eg:
-         *   if ( $line[0] == 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' ) 
+         *   if ( $line[0] == 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' )
          */
         // if ( $line[0] != 'Example CSV for csvimport.module - http://github.com/xurizaemon/csvimport' ) {
         //   form_set_error('csvfile', t('Sorry, this file does not match the expected format.')) ;
@@ -126,7 +126,7 @@ function csvimport_form_submit(&$form, &$form_state) {
          * we use base64_encode to ensure we don't overload the batch
          * processor by stuffing complex objects into it
          */
-        $batch['operations'][] = array('_csvimport_import_line', array(array_map('base64_encode', $line)));        
+        $batch['operations'][] = array('_csvimport_import_line', array(array_map('base64_encode', $line)));
       }
       fclose($handle);
     } // we caught this in csvimport_form_validate()
@@ -144,12 +144,12 @@ function csvimport_import_finished($success, $results, $operations) {
       $csv_filename = 'failed_rows-'. basename($results['uploaded_filename']); // we validated extension on upload
       $csv_filepath = $dir .'/'. $csv_filename;
       $targs = array(
-        '!csv_url' => l(check_plain($csv_filename), $csv_filepath),
+        '!csv_url' => l($csv_filename, $csv_filepath),
         '%csv_filename' => $csv_filename,
         '%csv_filepath' => $csv_filepath,
       ) ;
       if ( $handle = fopen($csv_filepath, 'w+') ) {
-        foreach( $results['failed_rows'] as $failed_row ) {
+        foreach ($results['failed_rows'] as $failed_row) {
           fputcsv($handle, $failed_row);
         }
         fclose($handle);
@@ -191,7 +191,7 @@ function _csvimport_import_line($line, &$context) {
   /**
    * Alternatively, our example CSV happens to have the title in the
    * third column, so we can uncomment this line to display "Importing
-   * Blahblah" as each row is parsed. 
+   * Blahblah" as each row is parsed.
    *
    * You can comment out the line above if you uncomment this one.
    */
