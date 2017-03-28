@@ -8,6 +8,7 @@ namespace Drupal\csvimport\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Component\Utility\Bytes;
 
 /**
  * Implements the ajax demo form controller.
@@ -33,10 +34,23 @@ class CSVimportForm extends FormBase {
    */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
-    $form['submit'] = [
-      '#type'  => 'submit',
-      '#value' => $this->t('Submit'),
+    $form['#attributes'] = [
+      'enctype' => 'multipart/form-data',
     ];
+    $form['csvfile']     = [
+      '#title'       => t('CSV File'),
+      '#type'        => 'file',
+      '#description' => ($max_size = file_upload_max_size()) ? t('Due to server restrictions, the <strong>maximum upload file size is @max_size</strong>. Files that exceed this size will be disregarded.', ['@max_size' => format_size($max_size)]) : '',
+    ];
+    $form['submit']      = [
+      '#type'  => 'submit',
+      '#value' => t('Commence Import'),
+    ];
+    $form['#validate']   = [
+      'csvimport_validate_fileupload',
+      'csvimport_form_validate',
+    ];
+    return $form;
 
     return $form;
   }
