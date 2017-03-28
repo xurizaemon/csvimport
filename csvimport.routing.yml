@@ -1,0 +1,7 @@
+csvimport:
+  path: admin/csv-import
+  defaults:
+    _form: \Drupal\csvimport\Form\CSVimportForm
+    _title: Import CSV
+  requirements:
+    _permission: administer site configuration
