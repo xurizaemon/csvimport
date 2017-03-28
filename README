@@ -1,7 +1,10 @@
-This is an example module for Drupal which uses file upload and Batch
-API to accept a CSV file. It generates a batch and runs it; the batch
-iterates through each line of the CSV (except the first) and does
-... nothing.
+Drupal 8 Batch Process CSV
+--
+
+This is an example module for Drupal which uses file upload and Batch API to
+import a CSV file. It generates a batch and runs it. The batch iterates
+through each line of the CSV (except the first) and does ... nothing, except
+for filling the progress bar. Sample code to import CSV to node included.
 
 The basic idea is that if you're writing a CSV importer for Drupal,
-maybe you can start here and save a bunch of time.
+maybe you can start here and save a lot of time.
