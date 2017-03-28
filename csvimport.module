@@ -8,22 +8,6 @@
  */
 
 /**
- * Implement hook_menu()
- */
-function csvimport_menu() {
-  $items['admin/content/csv_import'] = array(
-    'title' => 'Import CSV',
-    'description' => 'Import content from a <abbr title="Comma Separated Values">CSV</abbr> or <abbr title="Tab Separated Values">TSV</abbr> file.',
-   // 'access callback' => 'user_access',
-    'access arguments' => array('administer site configuration'),
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('csvimport_form'),
-//  'file' => 'csvimport.admin.inc',
-  );
-  return $items ;
-}
-
-/**
  * Build a form to upload CSV to.
  */
 function csvimport_form() {
