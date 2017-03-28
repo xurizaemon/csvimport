@@ -1,6 +1,0 @@
-;; $Id: node_import.info,v 1.1.4.5 2009/01/15 16:39:19 robrechtj Exp $
-name = CSV Import
-description = Demonstrates import from a CSV or TSV file. Updated to work with Drupal 7
-package = Development
-core = 7.x
-
