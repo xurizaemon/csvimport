@@ -115,6 +115,37 @@ class CSVimportForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Final submit
+    $batch = [
+      'title'            => t('Importing CSV ...'),
+      'operations'       => [],
+      'init_message'     => t('Commencing'),
+      'progress_message' => t('Processed @current out of @total.'),
+      'error_message'    => t('An error occurred during processing'),
+      'finished'         => 'csvimport_import_finished',
+    ];
+    if ($form_state->getValue('csvupload')) {
+      if ($handle = fopen($form_state->getValue('csvupload'), 'r')) {
+        $batch['operations'][] = [
+          '_csvimport_remember_filename',
+          [$form_state->getValue('csvupload')],
+        ];
+        $line_count            = 1;
+        $first                 = TRUE;
+        $line                  = fgetcsv($handle, 4096);
+        while ($line = fgetcsv($handle, 4096)) {
+          /**
+           * we use base64_encode to ensure we don't overload the batch
+           * processor by stuffing complex objects into it
+           */
+          $batch['operations'][] = [
+            '_csvimport_import_line',
+            [array_map('base64_encode', $line)],
+          ];
+        }
+        fclose($handle);
+      } // we caught this in csvimport_form_validate()
+    } // we caught this in csvimport_form_validate()
+    batch_set($batch);
   }
+
 }
