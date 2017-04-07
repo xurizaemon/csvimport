@@ -50,11 +50,6 @@ class CSVimportForm extends FormBase {
       '#value' => t('Start Import'),
     ];
 
-    // $form['#validate'] = [
-    //   'csvimport_validate_fileupload',
-    //   'csvimport_form_validate',
-    // ];
-
     return $form;
   }
 
