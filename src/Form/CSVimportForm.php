@@ -8,14 +8,10 @@ namespace Drupal\csvimport\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\file\Entity\File;
 
 /**
- * Implements the ajax demo form controller.
- *
- * This example demonstrates using ajax callbacks to populate the options of a
- * color select element dynamically based on the value selected in another
- * select element in the form.
+ * Implements the import form to upload a file and start the batch on form
+ * submit.
  *
  * @see \Drupal\Core\Form\FormBase
  * @see \Drupal\Core\Form\ConfigFormBase
@@ -50,11 +46,6 @@ class CSVimportForm extends FormBase {
       '#value' => t('Start Import'),
     ];
 
-    // $form['#validate'] = [
-    //   'csvimport_validate_fileupload',
-    //   'csvimport_form_validate',
-    // ];
-
     return $form;
   }
 
@@ -69,9 +60,10 @@ class CSVimportForm extends FormBase {
     ];
 
     if ($file = file_save_upload('csvfile', $validators, FALSE, 0, FILE_EXISTS_REPLACE)) {
-      // The file was saved using file_save_upload() and was added to
-      // the files table as a temporary file. We'll make a copy and let
-      // the garbage collector delete the original upload.
+
+      // The file was saved using file_save_upload() and was added to the
+      // files table as a temporary file. We'll make a copy and let the
+      // garbage collector delete the original upload.
       $csv_dir          = 'temporary://csvfile';
       $directory_exists = file_prepare_directory($csv_dir, FILE_CREATE_DIRECTORY);
 
@@ -93,8 +85,11 @@ class CSVimportForm extends FormBase {
   public function validateForm(array &$form, FormStateInterface $form_state) {
 
     if ($csvupload = $form_state->getValue('csvupload')) {
+
       if ($handle = fopen($csvupload, 'r')) {
+
         if ($line = fgetcsv($handle, 4096)) {
+
           /**
            * Validate the uploaded CSV here.
            *
@@ -120,6 +115,44 @@ class CSVimportForm extends FormBase {
    * {@inheritdoc}
    */
   public function submitForm(array &$form, FormStateInterface $form_state) {
-    // Final submit
+
+    $batch = [
+      'title'            => t('Importing CSV ...'),
+      'operations'       => [],
+      'init_message'     => t('Commencing'),
+      'progress_message' => t('Processed @current out of @total.'),
+      'error_message'    => t('An error occurred during processing'),
+      'finished'         => 'csvimport_import_finished',
+      'file'             => drupal_get_path('module', 'csvimport') . '/csvimport.batch.inc',
+    ];
+
+    if ($csvupload = $form_state->getValue('csvupload')) {
+
+      if ($handle = fopen($csvupload, 'r')) {
+
+        $batch['operations'][] = [
+          '_csvimport_remember_filename',
+          [$csvupload],
+        ];
+
+        while ($line = fgetcsv($handle, 4096)) {
+
+          /**
+           * Use base64_encode to ensure we don't overload the batch
+           * processor by stuffing complex objects into it.
+           */
+          $batch['operations'][] = [
+            '_csvimport_import_line',
+            [array_map('base64_encode', $line)],
+          ];
+        }
+
+        fclose($handle);
+
+      } // we caught this in csvimport_form_validate()
+    } // we caught this in csvimport_form_validate()
+
+    batch_set($batch);
   }
+
 }
