@@ -1,8 +1,4 @@
 <?php
-/**
- * @file
- * Contains \Drupal\csvimport\Form\CSVimportForm.
- */
 
 namespace Drupal\csvimport\Form;
 
@@ -10,13 +6,12 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Implements the import form to upload a file and start the batch on form
- * submit.
+ * Implements form to upload a file and start the batch on form submit.
  *
  * @see \Drupal\Core\Form\FormBase
  * @see \Drupal\Core\Form\ConfigFormBase
  */
-class CSVimportForm extends FormBase {
+class CsvImportForm extends FormBase {
 
   /**
    * {@inheritdoc}
@@ -35,25 +30,24 @@ class CSVimportForm extends FormBase {
     ];
 
     $form['csvfile'] = [
-      '#title'            => t('CSV File'),
+      '#title'            => $this->t('CSV File'),
       '#type'             => 'file',
-      '#description'      => ($max_size = file_upload_max_size()) ? t('Due to server restrictions, the <strong>maximum upload file size is @max_size</strong>. Files that exceed this size will be disregarded.', ['@max_size' => format_size($max_size)]) : '',
-      '#element_validate' => ['::csvimport_validate_fileupload'],
+      '#description'      => ($max_size = file_upload_max_size()) ? $this->t('Due to server restrictions, the <strong>maximum upload file size is @max_size</strong>. Files that exceed this size will be disregarded.', ['@max_size' => format_size($max_size)]) : '',
+      '#element_validate' => ['::validateFileupload'],
     ];
 
     $form['submit'] = [
       '#type'  => 'submit',
-      '#value' => t('Start Import'),
+      '#value' => $this->t('Start Import'),
     ];
 
     return $form;
   }
 
   /**
-   * Validate the file upload. It must be a CSV, and we must
-   * successfully save it to our import directory.
+   * Validate the file upload.
    */
-  public static function csvimport_validate_fileupload(&$element, FormStateInterface $form_state, &$complete_form) {
+  public static function validateFileupload(&$element, FormStateInterface $form_state, &$complete_form) {
 
     $validators = [
       'file_validate_extensions' => ['csv CSV'],
@@ -64,7 +58,7 @@ class CSVimportForm extends FormBase {
       // The file was saved using file_save_upload() and was added to the
       // files table as a temporary file. We'll make a copy and let the
       // garbage collector delete the original upload.
-      $csv_dir          = 'temporary://csvfile';
+      $csv_dir = 'temporary://csvfile';
       $directory_exists = file_prepare_directory($csv_dir, FILE_CREATE_DIRECTORY);
 
       if ($directory_exists) {
@@ -90,23 +84,22 @@ class CSVimportForm extends FormBase {
 
         if ($line = fgetcsv($handle, 4096)) {
 
-          /**
-           * Validate the uploaded CSV here.
-           *
-           * The example CSV happens to have cell A1 ($line[0]) as
-           * below; we validate it only.
-           *
-           * You'll probably want to check several headers, eg:
-           *   if ( $line[0] == 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' )
-           */
+          // Validate the uploaded CSV here.
+          // The example CSV happens to have cell A1 ($line[0]) as
+          // below; we validate it only.
+          //
+          // You'll probably want to check several headers, eg:
+          // @codingStandardsIgnoreStart
+          // if ( $line[0] == 'Index' || $line[1] != 'Supplier' || $line[2] != 'Title' )
+          // @codingStandardsIgnoreEnd
           if ($line[0] != 'Example CSV for csvimport.module - http://github.com/xurizaemon/csvimport') {
-            $form_state->setErrorByName('csvfile', t('Sorry, this file does not match the expected format.'));
+            $form_state->setErrorByName('csvfile', $this->t('Sorry, this file does not match the expected format.'));
           }
         }
         fclose($handle);
       }
       else {
-        $form_state->setErrorByName('csvfile', t('Unable to read uploaded file @filepath', ['@filepath' => $csvupload]));
+        $form_state->setErrorByName('csvfile', $this->t('Unable to read uploaded file @filepath', ['@filepath' => $csvupload]));
       }
     }
   }
@@ -117,11 +110,11 @@ class CSVimportForm extends FormBase {
   public function submitForm(array &$form, FormStateInterface $form_state) {
 
     $batch = [
-      'title'            => t('Importing CSV ...'),
+      'title'            => $this->t('Importing CSV ...'),
       'operations'       => [],
-      'init_message'     => t('Commencing'),
-      'progress_message' => t('Processed @current out of @total.'),
-      'error_message'    => t('An error occurred during processing'),
+      'init_message'     => $this->t('Commencing'),
+      'progress_message' => $this->t('Processed @current out of @total.'),
+      'error_message'    => $this->t('An error occurred during processing'),
       'finished'         => 'csvimport_import_finished',
       'file'             => drupal_get_path('module', 'csvimport') . '/csvimport.batch.inc',
     ];
@@ -137,10 +130,8 @@ class CSVimportForm extends FormBase {
 
         while ($line = fgetcsv($handle, 4096)) {
 
-          /**
-           * Use base64_encode to ensure we don't overload the batch
-           * processor by stuffing complex objects into it.
-           */
+          // Use base64_encode to ensure we don't overload the batch
+          // processor by stuffing complex objects into it.
           $batch['operations'][] = [
             '_csvimport_import_line',
             [array_map('base64_encode', $line)],
@@ -148,9 +139,8 @@ class CSVimportForm extends FormBase {
         }
 
         fclose($handle);
-
-      } // we caught this in csvimport_form_validate()
-    } // we caught this in csvimport_form_validate()
+      }
+    }
 
     batch_set($batch);
   }
