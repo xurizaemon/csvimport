@@ -90,7 +90,7 @@ class CsvImportBatch {
 
     // In order to slow importing and debug better, we can uncomment
     // this line to make each import slightly slower.
-    usleep(2500);
+    // usleep(2500);
 
     // Convert the line of the CSV file into a new node.
     // @codingStandardsIgnoreStart
