@@ -3,6 +3,9 @@
 namespace Drupal\csvimport\Batch;
 
 // @codingStandardsIgnoreStart
+// Node can be used later to actually create nodes. See commented code block
+// in csvimportImportLine() below. Since it's unused right now, we hide it from
+// coding standards linting.
 use Drupal\node\Entity\Node;
 
 // @codingStandardsIgnoreEnd
