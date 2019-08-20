@@ -12,3 +12,15 @@ imported due to malformation (if any).
 
 The basic idea is that if you're writing a CSV importer for Drupal,
 maybe you can start here and save a lot of time.
+
+## See also
+
+You should definitely check out the excellent Drupal Migrate module and the toolkit & features it offers. They may fit your needs better. If you want a lightweight start point, this module may be useful and we hope you find it so!
+
+## License
+
+* GPLv2, per Drupal contrib.
+
+## Code of conduct
+
+* [DCoC](https://www.drupal.org/dcoc)
