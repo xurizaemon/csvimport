@@ -115,8 +115,7 @@ class CsvImportForm extends FormBase {
       'init_message'     => $this->t('Commencing'),
       'progress_message' => $this->t('Processed @current out of @total.'),
       'error_message'    => $this->t('An error occurred during processing'),
-      'finished'         => 'csvimport_import_finished',
-      'file'             => drupal_get_path('module', 'csvimport') . '/csvimport.batch.inc',
+      'finished'         => '\Drupal\csvimport\Batch\CsvImportBatch::csvimportImportFinished',
     ];
 
     if ($csvupload = $form_state->getValue('csvupload')) {
@@ -124,7 +123,7 @@ class CsvImportForm extends FormBase {
       if ($handle = fopen($csvupload, 'r')) {
 
         $batch['operations'][] = [
-          '_csvimport_remember_filename',
+          '\Drupal\csvimport\Batch\CsvImportBatch::csvimportRememberFilename',
           [$csvupload],
         ];
 
@@ -133,7 +132,7 @@ class CsvImportForm extends FormBase {
           // Use base64_encode to ensure we don't overload the batch
           // processor by stuffing complex objects into it.
           $batch['operations'][] = [
-            '_csvimport_import_line',
+            '\Drupal\csvimport\Batch\CsvImportBatch::csvimportImportLine',
             [array_map('base64_encode', $line)],
           ];
         }
