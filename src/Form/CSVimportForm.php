@@ -2,6 +2,7 @@
 
 namespace Drupal\csvimport\Form;
 
+use Drupal\Component\Utility\Environment;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -33,7 +34,7 @@ class CsvImportForm extends FormBase {
     $form['csvfile'] = [
       '#title'            => $this->t('CSV File'),
       '#type'             => 'file',
-      '#description'      => ($max_size = file_upload_max_size()) ? $this->t('Due to server restrictions, the <strong>maximum upload file size is @max_size</strong>. Files that exceed this size will be disregarded.', ['@max_size' => format_size($max_size)]) : '',
+      '#description'      => ($max_size = Environment::getUploadMaxSize()) ? $this->t('Due to server restrictions, the <strong>maximum upload file size is @max_size</strong>. Files that exceed this size will be disregarded.', ['@max_size' => format_size($max_size)]) : '',
       '#element_validate' => ['::validateFileupload'],
     ];
 
