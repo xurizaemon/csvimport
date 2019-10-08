@@ -95,8 +95,10 @@ class CsvImportBatch {
 
     // In order to slow importing and debug better, we can uncomment
     // this line to make each import slightly slower.
-    // usleep(2500);
+    // @codingStandardsIgnoreStart
+    //usleep(2500);
 
+    // @codingStandardsIgnoreEnd
     // Convert the line of the CSV file into a new node.
     // @codingStandardsIgnoreStart
     //if ($context['results']['rows_imported'] > 1) { // Skip header line.
