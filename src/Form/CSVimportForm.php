@@ -2,6 +2,7 @@
 
 namespace Drupal\csvimport\Form;
 
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 
@@ -53,17 +54,20 @@ class CsvImportForm extends FormBase {
       'file_validate_extensions' => ['csv CSV'],
     ];
 
+    // @TODO: File_save_upload will probably be deprecated soon as well.
+    // @see https://www.drupal.org/node/2244513.
     if ($file = file_save_upload('csvfile', $validators, FALSE, 0, FILE_EXISTS_REPLACE)) {
 
       // The file was saved using file_save_upload() and was added to the
       // files table as a temporary file. We'll make a copy and let the
       // garbage collector delete the original upload.
       $csv_dir = 'temporary://csvfile';
-      $directory_exists = file_prepare_directory($csv_dir, FILE_CREATE_DIRECTORY);
+      $directory_exists = \Drupal::service('file_system')
+        ->prepareDirectory($csv_dir, FileSystemInterface::CREATE_DIRECTORY);
 
       if ($directory_exists) {
         $destination = $csv_dir . '/' . $file->getFilename();
-        if (file_copy($file, $destination, FILE_EXISTS_REPLACE)) {
+        if (file_copy($file, $destination, FileSystemInterface::EXISTS_REPLACE)) {
           $form_state->setValue('csvupload', $destination);
         }
         else {

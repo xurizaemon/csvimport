@@ -6,6 +6,7 @@ namespace Drupal\csvimport\Batch;
 // Node can be used later to actually create nodes. See commented code block
 // in csvimportImportLine() below. Since it's unused right now, we hide it from
 // coding standards linting.
+use Drupal\Core\File\FileSystemInterface;
 use Drupal\node\Entity\Node;
 
 // @codingStandardsIgnoreEnd
@@ -29,7 +30,8 @@ class CsvImportBatch {
     if (!empty($results['failed_rows'])) {
 
       $dir = 'public://csvimport';
-      if (file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
+      if (\Drupal::service('file_system')
+        ->prepareDirectory($dir, FileSystemInterface::CREATE_DIRECTORY)) {
 
         // We validated extension on upload.
         $csv_filename = 'failed_rows-' . basename($results['uploaded_filename']);
