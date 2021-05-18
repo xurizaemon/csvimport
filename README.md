@@ -15,9 +15,15 @@ maybe you can start here and save a lot of time.
 
 ## See also
 
-You should definitely check out the excellent Drupal Migrate module and the
-toolkit & features it offers. They may fit your needs better. If you want a
-lightweight start point, this module may be useful and we hope you find it so!
+You should definitely check Drupal's excellent [Migrate](https://www.drupal.org/docs/drupal-apis/migrate-api/migrate-api-overview)
+functionality and the toolkit & features it offers. They may fit your needs better,
+especially if you prefer using configuration over custom code.
+
+In particular, take a look at [Migrate Source UI](https://www.drupal.org/project/migrate_source_ui)
+which fills a similar space to this module; a web UI that you can throw CSV at.
+
+If you want a lightweight start point which requires custom coding, this module may 
+be useful and we hope you find it so!
 
 ## License
 
