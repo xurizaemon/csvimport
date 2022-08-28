@@ -38,7 +38,8 @@ class CsvImportBatch {
         $csv_filepath = $dir . '/' . $csv_filename;
 
         $targs = [
-          ':csv_url'      => file_create_url($csv_filepath),
+          ':csv_url' => \Drupal::service('file_url_generator')
+            ->generateAbsoluteString($csv_filepath),
           '@csv_filename' => $csv_filename,
           '@csv_filepath' => $csv_filepath,
         ];
